@@ -119,8 +119,10 @@ def task_send_reminder():
 
 
 if __name__ == "__main__":
+    print(datetime.datetime.now().time())
     os.environ["TZ"] = "Europe/Kyiv"
     time.tzset()
+    print(datetime.datetime.now().time())
 
     schedule.every().day.at("09:50").do(task_send_reminder)
 
