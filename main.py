@@ -1,5 +1,6 @@
 import datetime
 import os
+import time
 from threading import Thread
 from time import sleep
 
@@ -38,7 +39,8 @@ def start(message):
 def get_text_messages(message):
     if message.text == "Піти на обід🍔":
         courier = Courier(message.from_user.id).get_courier_by_user_id()
-        start_time = datetime.datetime.fromtimestamp(message.date).time()
+
+        start_time = datetime.datetime.now().time()
         LunchBreak().start_lunch_break(courier['name'], start_time)
 
         markup = types.ReplyKeyboardMarkup()
@@ -48,7 +50,7 @@ def get_text_messages(message):
         bot.send_message(message.from_user.id, "Смачного!", reply_markup=markup)
     elif message.text == 'Завершити обід':
         courier = Courier(message.from_user.id).get_courier_by_user_id()
-        end_time = datetime.datetime.fromtimestamp(message.date).time()
+        end_time = datetime.datetime.now().time()
         LunchBreak().end_lunch_break(courier['name'], end_time)
 
         markup = types.ReplyKeyboardMarkup()
@@ -76,13 +78,13 @@ def process_create_courier_step(message):
 def location(message):
     if message.location is not None:
         courier = Courier(message.from_user.id).get_courier_by_user_id()
-        time = datetime.datetime.fromtimestamp(message.date).time()
+        message_time = datetime.datetime.now().time()
         address = get_country(message.location.latitude, message.location.longitude)
 
         is_courier_work = Workday().get_row_courier_workday(courier['name'])
 
         if not is_courier_work:
-            Workday().start_workday(courier['name'], time, address)
+            Workday().start_workday(courier['name'], message_time, address)
 
             markup = types.ReplyKeyboardMarkup()
             btn_lunch_brake = types.KeyboardButton(text='Піти на обід🍔')
@@ -93,7 +95,7 @@ def location(message):
             # print(message.location)
             print("latitude: %s; longitude: %s" % (message.location.latitude, message.location.longitude))
         else:
-            Workday().end_workday(courier['name'], time, address, row=is_courier_work)
+            Workday().end_workday(courier['name'], message_time, address, row=is_courier_work)
 
             markup = types.ReplyKeyboardMarkup()
             btn_start_work = types.KeyboardButton(text='Я вже нa poботі💼', request_location=True)
@@ -117,6 +119,9 @@ def task_send_reminder():
 
 
 if __name__ == "__main__":
+    os.environ["TZ"] = "Europe/Kyiv"
+    time.tzset()
+
     schedule.every().day.at("09:50").do(task_send_reminder)
 
     Thread(target=schedule_checker).start()

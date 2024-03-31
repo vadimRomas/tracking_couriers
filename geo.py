@@ -4,7 +4,7 @@ import requests
 def get_country(lat, lon):
     url = f'https://nominatim.openstreetmap.org/reverse?lat={lat}&lon={lon}&format=jsonv2&accept-language=ua&zoom=18'
     try:
-        result = requests.get(url=url)
+        result = requests.get(url=url, headers={'User-Agent': 'Chrome/123.0.0.0 Safari/537.36'})
         result_json = result.json()
         result_str = ''
 
