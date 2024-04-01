@@ -2,6 +2,7 @@ import datetime
 
 import pygsheets
 
+from config import tz
 from lunch_break import LunchBreak
 
 
@@ -12,7 +13,7 @@ class Workday:
     worksheet = sheet.worksheet_by_title('Workday')
 
     def __init__(self):
-        self.date = datetime.date.today()
+        self.date = datetime.datetime.now(tz).date()
 
     def start_workday(self, courier_name, time, location):
         self.worksheet.append_table([str(self.date), courier_name, str(time), location])

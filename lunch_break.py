@@ -2,6 +2,8 @@ import datetime
 
 import pygsheets
 
+from config import tz
+
 
 class LunchBreak:
     sheet_name = 'CouriersTracking'
@@ -10,7 +12,7 @@ class LunchBreak:
     worksheet = sheet.worksheet_by_title('lunchBreak')
 
     def __init__(self):
-        self.date = datetime.date.today()
+        self.date = datetime.datetime.now(tz).date()
 
     def start_lunch_break(self, courier_name, start_time):
         self.worksheet.append_table([str(self.date), courier_name, str(start_time)])

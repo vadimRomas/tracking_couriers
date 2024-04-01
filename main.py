@@ -1,22 +1,18 @@
 import datetime
-import os
-import time
 from threading import Thread
 from time import sleep
 
 import schedule
-from dotenv import load_dotenv
-from telebot import TeleBot, types
+from telebot import TeleBot, types, apihelper
 
+from config import telegram_token, tz, proxy_url
 from couriers import Courier
 from geo import get_country
 from lunch_break import LunchBreak
 from workday import Workday
 
 
-load_dotenv()
-
-bot = TeleBot(os.getenv('telegram_token'))
+bot = TeleBot(telegram_token)
 
 
 @bot.message_handler(commands=["start"])
@@ -40,7 +36,7 @@ def get_text_messages(message):
     if message.text == "Піти на обід🍔":
         courier = Courier(message.from_user.id).get_courier_by_user_id()
 
-        start_time = datetime.datetime.now().time()
+        start_time = datetime.datetime.now(tz).time()
         LunchBreak().start_lunch_break(courier['name'], start_time)
 
         markup = types.ReplyKeyboardMarkup()
@@ -50,7 +46,7 @@ def get_text_messages(message):
         bot.send_message(message.from_user.id, "Смачного!", reply_markup=markup)
     elif message.text == 'Завершити обід':
         courier = Courier(message.from_user.id).get_courier_by_user_id()
-        end_time = datetime.datetime.now().time()
+        end_time = datetime.datetime.now(tz).time()
         LunchBreak().end_lunch_break(courier['name'], end_time)
 
         markup = types.ReplyKeyboardMarkup()
@@ -78,7 +74,7 @@ def process_create_courier_step(message):
 def location(message):
     if message.location is not None:
         courier = Courier(message.from_user.id).get_courier_by_user_id()
-        message_time = datetime.datetime.now().time()
+        message_time = datetime.datetime.now(tz).time()
         address = get_country(message.location.latitude, message.location.longitude)
 
         is_courier_work = Workday().get_row_courier_workday(courier['name'])
@@ -119,10 +115,8 @@ def task_send_reminder():
 
 
 if __name__ == "__main__":
-    os.environ["TZ"] = "Europe/Kyiv"
-    time.tzset()
-
-    schedule.every().day.at("09:50").do(task_send_reminder)
+    apihelper.proxy = {'http': proxy_url}
+    schedule.every().day.at("09:50", "Europe/Kyiv").do(task_send_reminder)
 
     Thread(target=schedule_checker).start()
 
