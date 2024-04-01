@@ -20,6 +20,7 @@ class Courier:
 
     def create_courier(self):
         self.worksheet.append_table([self.name, self.user_id])
+        return {"name": self.name, "user_id": self.user_id}
 
     def get_all_couriers(self):
         all_couriers = self.worksheet.get_all_values(include_tailing_empty=False, include_tailing_empty_rows=False)

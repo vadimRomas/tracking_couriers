@@ -24,7 +24,7 @@ def start(message):
         bot.register_next_step_handler(msg, process_create_courier_step)
         return
 
-    markup = types.ReplyKeyboardMarkup()
+    markup = types.ReplyKeyboardMarkup(resize_keyboard=True)
     button_geo = types.KeyboardButton(text='Я вже нa poботі💼', request_location=True)
     markup.add(button_geo)
 
@@ -36,20 +36,20 @@ def get_text_messages(message):
     if message.text == "Піти на обід🍔":
         courier = Courier(message.from_user.id).get_courier_by_user_id()
 
-        start_time = datetime.datetime.now(tz).time()
+        start_time = datetime.datetime.now(tz).time().replace(microsecond=0)
         LunchBreak().start_lunch_break(courier['name'], start_time)
 
-        markup = types.ReplyKeyboardMarkup()
+        markup = types.ReplyKeyboardMarkup(resize_keyboard=True)
         btn_end_lunch = types.KeyboardButton('Завершити обід')
         markup.add(btn_end_lunch)
 
         bot.send_message(message.from_user.id, "Смачного!", reply_markup=markup)
     elif message.text == 'Завершити обід':
         courier = Courier(message.from_user.id).get_courier_by_user_id()
-        end_time = datetime.datetime.now(tz).time()
+        end_time = datetime.datetime.now(tz).time().replace(microsecond=0)
         LunchBreak().end_lunch_break(courier['name'], end_time)
 
-        markup = types.ReplyKeyboardMarkup()
+        markup = types.ReplyKeyboardMarkup(resize_keyboard=True)
         btn_lunch_brake = types.KeyboardButton(text='Піти на обід🍔')
         btn_go_home = types.KeyboardButton(text='Завершити роботу', request_location=True)
         markup.add(btn_lunch_brake, btn_go_home)
@@ -63,7 +63,7 @@ def process_create_courier_step(message):
     create_courier = Courier(message.from_user.id, courier_name).create_courier()
 
     if create_courier:
-        markup = types.ReplyKeyboardMarkup()
+        markup = types.ReplyKeyboardMarkup(resize_keyboard=True)
         button_geo = types.KeyboardButton(text='Я вже нa poботі💼', request_location=True)
         markup.add(button_geo)
 
@@ -74,26 +74,29 @@ def process_create_courier_step(message):
 def location(message):
     if message.location is not None:
         courier = Courier(message.from_user.id).get_courier_by_user_id()
-        message_time = datetime.datetime.now(tz).time()
+        message_time = datetime.datetime.now(tz).time().replace(microsecond=0)
         address = get_country(message.location.latitude, message.location.longitude)
 
-        is_courier_work = Workday().get_row_courier_workday(courier['name'])
+        row_courier_work = Workday().get_row_courier_workday(courier['name'])
+        courier_work = Workday().get_courier_workday(courier['name'])
 
-        if not is_courier_work:
+        if len(courier_work) == 8:
+            bot.send_message(message.chat.id, "Ви вже завершили сьогодні працювати! Якщо ви випадково завершили роботу, будь ласка, повідомте вашого керівника")
+            return
+
+        if not row_courier_work:
             Workday().start_workday(courier['name'], message_time, address)
 
-            markup = types.ReplyKeyboardMarkup()
+            markup = types.ReplyKeyboardMarkup(resize_keyboard=True)
             btn_lunch_brake = types.KeyboardButton(text='Піти на обід🍔')
             btn_go_home = types.KeyboardButton(text='Завершити роботу', request_location=True)
             markup.add(btn_lunch_brake, btn_go_home)
 
             bot.send_message(message.chat.id, address, reply_markup=markup)
-            # print(message.location)
-            print("latitude: %s; longitude: %s" % (message.location.latitude, message.location.longitude))
         else:
-            Workday().end_workday(courier['name'], message_time, address, row=is_courier_work)
+            Workday().end_workday(courier['name'], message_time, address, row=row_courier_work)
 
-            markup = types.ReplyKeyboardMarkup()
+            markup = types.ReplyKeyboardMarkup(resize_keyboard=True)
             btn_start_work = types.KeyboardButton(text='Я вже нa poботі💼', request_location=True)
             markup.add(btn_start_work)
 
