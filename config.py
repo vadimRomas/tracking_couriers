@@ -1,8 +1,6 @@
-import os
-
 import pytz
+from dotenv import dotenv_values
 
-
-telegram_token = os.getenv('telegram_token')
+telegram_token = dotenv_values(".env")['telegram_token']
 tz = pytz.timezone("Europe/Kyiv")
-proxy_url = os.getenv('proxy_url')
+proxy_url = dotenv_values(".env")['proxy_url'] if 'proxy_url' in dotenv_values("env") else None
