@@ -28,7 +28,11 @@ def start(message):
     button_geo = types.KeyboardButton(text='Я вже нa poботі💼', request_location=True)
     markup.add(button_geo)
 
-    bot.send_message(message.chat.id, f'Привіт! {courier["name"]}', reply_markup=markup)
+    try:
+        bot.send_message(message.chat.id, f'Привіт! {courier["name"]}', reply_markup=markup)
+    except Exception as e:
+        print('message.chat.id: ', message.chat.id)
+        print(e)
 
 
 @bot.message_handler(content_types=['text'])
@@ -42,8 +46,11 @@ def get_text_messages(message):
         markup = types.ReplyKeyboardMarkup(resize_keyboard=True)
         btn_end_lunch = types.KeyboardButton('Завершити обід')
         markup.add(btn_end_lunch)
-
-        bot.send_message(message.from_user.id, "Смачного!", reply_markup=markup)
+        try:
+            bot.send_message(message.from_user.id, "Смачного!", reply_markup=markup)
+        except Exception as e:
+            print('message.chat.id: ', message.chat.id)
+            print(e)
     elif message.text == 'Завершити обід':
         courier = Courier(message.from_user.id).get_courier_by_user_id()
         end_time = datetime.datetime.now(tz).time().replace(microsecond=0)
@@ -54,7 +61,11 @@ def get_text_messages(message):
         btn_go_home = types.KeyboardButton(text='Завершити роботу', request_location=True)
         markup.add(btn_lunch_brake, btn_go_home)
 
-        bot.send_message(message.from_user.id, 'Поїли тепер можна і попрацювати', reply_markup=markup)
+        try:
+            bot.send_message(message.from_user.id, 'Поїли тепер можна і попрацювати', reply_markup=markup)
+        except Exception as e:
+            print('message.chat.id: ', message.chat.id)
+            print(e)
 
 
 def process_create_courier_step(message):
@@ -67,7 +78,11 @@ def process_create_courier_step(message):
         button_geo = types.KeyboardButton(text='Я вже нa poботі💼', request_location=True)
         markup.add(button_geo)
 
-        bot.send_message(message.chat.id, f"Радий знайомству {create_courier['name'].title()}", reply_markup=markup)
+        try:
+            bot.send_message(message.chat.id, f"Радий знайомству {create_courier['name'].title()}", reply_markup=markup)
+        except Exception as e:
+            print('message.chat.id: ', message.chat.id)
+            print(e)
 
 
 @bot.message_handler(content_types=["location"])
@@ -81,7 +96,11 @@ def location(message):
         courier_work = Workday().get_courier_workday(courier['name'])
 
         if len(courier_work) == 8:
-            bot.send_message(message.chat.id, "Ви вже завершили сьогодні працювати! Якщо ви випадково завершили роботу, будь ласка, повідомте вашого керівника")
+            try:
+                bot.send_message(message.chat.id, "Ви вже завершили сьогодні працювати! Якщо ви випадково завершили роботу, будь ласка, повідомте вашого керівника")
+            except Exception as e:
+                print('message.chat.id: ', message.chat.id)
+                print(e)
             return
 
         if not row_courier_work:
@@ -92,7 +111,12 @@ def location(message):
             btn_go_home = types.KeyboardButton(text='Завершити роботу', request_location=True)
             markup.add(btn_lunch_brake, btn_go_home)
 
-            bot.send_message(message.chat.id, address, reply_markup=markup)
+            try:
+                bot.send_message(message.chat.id, address, reply_markup=markup)
+            except Exception as e:
+                print('message.chat.id: ', message.chat.id)
+                print(courier)
+                print(e)
         else:
             Workday().end_workday(courier['name'], message_time, address, row=row_courier_work)
 
@@ -100,7 +124,12 @@ def location(message):
             btn_start_work = types.KeyboardButton(text='Я вже нa poботі💼', request_location=True)
             markup.add(btn_start_work)
 
-            bot.send_message(message.chat.id, address, reply_markup=markup)
+            try:
+                bot.send_message(message.chat.id, address, reply_markup=markup)
+            except Exception as e:
+                print('message.chat.id: ', message.chat.id)
+                print(courier)
+                print(e)
 
 
 def schedule_checker():
@@ -114,7 +143,11 @@ def task_send_reminder():
 
     for courier in couriers:
         if courier['telegram_id'] != 'телеграм id':
-            bot.send_message(courier['telegram_id'], f'Привіт {courier["name"].title()}👋 Якщо ти сьогодні працюєш, не забудь відмітитися коли прийдеш на роботу. Гарного та Продуктивного дня🤙')
+            try:
+                bot.send_message(courier['telegram_id'], f'Привіт {courier["name"].title()}👋 Якщо ти сьогодні працюєш, не забудь відмітитися коли прийдеш на роботу. Гарного та Продуктивного дня🤙')
+            except Exception as e:
+                print(courier)
+                print(e)
 
 
 if __name__ == "__main__":
