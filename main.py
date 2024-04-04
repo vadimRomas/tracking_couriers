@@ -17,7 +17,7 @@ bot = TeleBot(telegram_token)
 
 @bot.message_handler(commands=["start"])
 def start(message):
-    courier = Courier(message.from_user.id).get_courier_by_user_id()
+    courier = Courier(message.from_user.id).get_courier()
 
     if not courier:
         msg = bot.send_message(message.chat.id, f"Привіт незнайомець🥷 Введи своє ім'я та прізвище")
@@ -38,7 +38,7 @@ def start(message):
 @bot.message_handler(content_types=['text'])
 def get_text_messages(message):
     if message.text == "Піти на обід🍔":
-        courier = Courier(message.from_user.id).get_courier_by_user_id()
+        courier = Courier(message.from_user.id).get_courier()
 
         start_time = datetime.datetime.now(tz).time().replace(microsecond=0)
         LunchBreak().start_lunch_break(courier['name'], start_time)
@@ -52,7 +52,7 @@ def get_text_messages(message):
             print('message.chat.id: ', message.chat.id)
             print(e)
     elif message.text == 'Завершити обід':
-        courier = Courier(message.from_user.id).get_courier_by_user_id()
+        courier = Courier(message.from_user.id).get_courier()
         end_time = datetime.datetime.now(tz).time().replace(microsecond=0)
         LunchBreak().end_lunch_break(courier['name'], end_time)
 
@@ -88,7 +88,7 @@ def process_create_courier_step(message):
 @bot.message_handler(content_types=["location"])
 def location(message):
     if message.location is not None:
-        courier = Courier(message.from_user.id).get_courier_by_user_id()
+        courier = Courier(message.from_user.id).get_courier()
         message_time = datetime.datetime.now(tz).time().replace(microsecond=0)
         address = get_country(message.location.latitude, message.location.longitude)
 
@@ -138,7 +138,7 @@ def schedule_checker():
         sleep(1)
 
 
-def task_send_reminder():
+def task_send_reminder_start():
     couriers = Courier().get_all_couriers()
 
     for courier in couriers:
@@ -150,9 +150,38 @@ def task_send_reminder():
                 print(e)
 
 
+def task_filling_blanks():
+    all_workdays = Workday().worksheet.get_all_values(include_tailing_empty=False, include_tailing_empty_rows=False)
+    all_lunch_brake = LunchBreak().worksheet.get_all_values(include_tailing_empty=False, include_tailing_empty_rows=False)
+    name_couriers = []
+
+    for lunch_brake in all_lunch_brake:
+        if len(lunch_brake) == 3:
+            LunchBreak().end_lunch_break(lunch_brake[1], '23:50:00')
+
+    for idw, workday in enumerate(all_workdays):
+        if len(workday) == 4:
+            Workday().end_workday(workday[1], datetime.datetime.now().time().replace(microsecond=0), 'Відсутнє', idw + 1)
+            if workday[1] not in name_couriers:
+                name_couriers.append(workday[1])
+
+    for name_courier in name_couriers:
+        courier = Courier(name=name_courier).get_courier()
+
+        markup = types.ReplyKeyboardMarkup(resize_keyboard=True)
+        btn_start_work = types.KeyboardButton(text='Я вже нa poботі💼', request_location=True)
+        markup.add(btn_start_work)
+
+        bot.send_message(courier['telegram_id'],
+                         f'Оце ти попав! Схоже що ти не натиснув кнопку завершити роботу. Більше так не роби.',
+                         reply_markup=markup)
+
+
 if __name__ == "__main__":
     apihelper.proxy = {'http': proxy_url}
-    schedule.every().day.at("09:50", "Europe/Kyiv").do(task_send_reminder)
+
+    schedule.every().day.at("09:50", "Europe/Kyiv").do(task_send_reminder_start)
+    schedule.every().day.at("23:50", "Europe/Kyiv").do(task_filling_blanks)
 
     Thread(target=schedule_checker).start()
 

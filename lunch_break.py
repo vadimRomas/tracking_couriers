@@ -20,7 +20,8 @@ class LunchBreak:
     def end_lunch_break(self, courier_name, end_time):
         row = self.get_row_courier_lunch_break(courier_name, self.date)
 
-        self.worksheet.update_value(f'D{row}', str(end_time))
+        if row:
+            self.worksheet.update_value(f'D{row}', str(end_time))
 
     def count_lunch_break(self, courier_name):
         all_lunch_brake = self.worksheet.get_all_values(include_tailing_empty=False, include_tailing_empty_rows=False)

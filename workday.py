@@ -43,10 +43,15 @@ class Workday:
                 return idc + 1
 
     def get_courier_workday(self, courier_name):
-        all_couriers = self.worksheet.get_all_values(include_tailing_empty=False, include_tailing_empty_rows=False)
+        all_workdays = self.worksheet.get_all_values(include_tailing_empty=False, include_tailing_empty_rows=False)
 
-        for courier in all_couriers:
-            if courier_name == courier[1] and str(self.date) == courier[0]:
-                return courier
+        for workday in all_workdays:
+            if courier_name == workday[1] and str(self.date) == workday[0]:
+                return workday
 
         return []
+
+    def get_couriers_workday(self):
+        all_workdays = self.worksheet.get_all_values(include_tailing_empty=False, include_tailing_empty_rows=False)
+
+        return [workday for workday in all_workdays if str(self.date) == workday[0]]
