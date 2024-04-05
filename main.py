@@ -161,7 +161,7 @@ def task_filling_blanks():
 
     for idw, workday in enumerate(all_workdays):
         if len(workday) == 4:
-            Workday().end_workday(workday[1], datetime.datetime.now().time().replace(microsecond=0), 'Відсутнє', idw + 1)
+            Workday().end_workday(workday[1], datetime.datetime.now(tz).time().replace(microsecond=0), 'Відсутнє', idw + 1)
             if workday[1] not in name_couriers:
                 name_couriers.append(workday[1])
 
@@ -171,10 +171,13 @@ def task_filling_blanks():
         markup = types.ReplyKeyboardMarkup(resize_keyboard=True)
         btn_start_work = types.KeyboardButton(text='Я вже нa poботі💼', request_location=True)
         markup.add(btn_start_work)
-
-        bot.send_message(courier['telegram_id'],
-                         f'Оце ти попав! Схоже що ти не натиснув кнопку завершити роботу. Більше так не роби.',
-                         reply_markup=markup)
+        try:
+            bot.send_message(courier['telegram_id'],
+                             f'Оце ти попав! Схоже що ти не натиснув кнопку завершити роботу. Більше так не роби.',
+                             reply_markup=markup)
+        except Exception as e:
+            print(courier)
+            print(e)
 
 
 if __name__ == "__main__":
