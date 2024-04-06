@@ -3,16 +3,15 @@ from threading import Thread
 from time import sleep
 
 import schedule
-from telebot import TeleBot, types, apihelper
+from telebot import types, apihelper
+from telebot.apihelper import ApiTelegramException
 
-from config import telegram_token, tz, proxy_url
+from config import tz, proxy_url, bot
 from couriers import Courier
 from geo import get_country
 from lunch_break import LunchBreak
+from tasks import task_send_reminder_start, task_send_reminder_end_lunch, task_filling_blanks
 from workday import Workday
-
-
-bot = TeleBot(telegram_token)
 
 
 @bot.message_handler(commands=["start"])
@@ -46,6 +45,9 @@ def get_text_messages(message):
         markup = types.ReplyKeyboardMarkup(resize_keyboard=True)
         btn_end_lunch = types.KeyboardButton('Завершити обід')
         markup.add(btn_end_lunch)
+
+        schedule.every(1).hour.do(task_send_reminder_end_lunch, message.from_user.id)
+
         try:
             bot.send_message(message.from_user.id, "Смачного!", reply_markup=markup)
         except Exception as e:
@@ -138,46 +140,14 @@ def schedule_checker():
         sleep(1)
 
 
-def task_send_reminder_start():
-    couriers = Courier().get_all_couriers()
-
-    for courier in couriers:
-        if courier['telegram_id'] != 'телеграм id':
-            try:
-                bot.send_message(courier['telegram_id'], f'Привіт {courier["name"].title()}👋 Якщо ти сьогодні працюєш, не забудь відмітитися коли прийдеш на роботу. Гарного та Продуктивного дня🤙')
-            except Exception as e:
-                print(courier)
-                print(e)
-
-
-def task_filling_blanks():
-    all_workdays = Workday().worksheet.get_all_values(include_tailing_empty=False, include_tailing_empty_rows=False)
-    all_lunch_brake = LunchBreak().worksheet.get_all_values(include_tailing_empty=False, include_tailing_empty_rows=False)
-    name_couriers = []
-
-    for lunch_brake in all_lunch_brake:
-        if len(lunch_brake) == 3:
-            LunchBreak().end_lunch_break(lunch_brake[1], '23:50:00')
-
-    for idw, workday in enumerate(all_workdays):
-        if len(workday) == 4:
-            Workday().end_workday(workday[1], datetime.datetime.now(tz).time().replace(microsecond=0), 'Відсутнє', idw + 1)
-            if workday[1] not in name_couriers:
-                name_couriers.append(workday[1])
-
-    for name_courier in name_couriers:
-        courier = Courier(name=name_courier).get_courier()
-
-        markup = types.ReplyKeyboardMarkup(resize_keyboard=True)
-        btn_start_work = types.KeyboardButton(text='Я вже нa poботі💼', request_location=True)
-        markup.add(btn_start_work)
-        try:
-            bot.send_message(courier['telegram_id'],
-                             f'Оце ти попав! Схоже що ти не натиснув кнопку завершити роботу. Більше так не роби.',
-                             reply_markup=markup)
-        except Exception as e:
-            print(courier)
-            print(e)
+def start_bot():
+    try:
+        bot.infinity_polling(none_stop=True, interval=0)  # обязательная для работы бота часть
+    except ApiTelegramException as e:
+        print(dir(e))
+        print(e)
+        sleep(10)
+        start_bot()
 
 
 if __name__ == "__main__":
@@ -188,4 +158,4 @@ if __name__ == "__main__":
 
     Thread(target=schedule_checker).start()
 
-    bot.polling(none_stop=True, interval=0)  # обязательная для работы бота часть
+    start_bot()
