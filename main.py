@@ -38,9 +38,18 @@ def start(message):
 def get_text_messages(message):
     if message.text == "Піти на обід🍔":
         courier = Courier(message.from_user.id).get_courier()
+        start_datetime = datetime.datetime.now(tz)
+        row_lunch_brake = LunchBreak().get_row_courier_lunch_break(courier['name'], start_datetime.date())
 
-        start_time = datetime.datetime.now(tz).time().replace(microsecond=0)
-        LunchBreak().start_lunch_break(courier['name'], start_time)
+        if row_lunch_brake:
+            markup = types.ReplyKeyboardMarkup(resize_keyboard=True)
+            btn_end_lunch = types.KeyboardButton('Завершити обід')
+            markup.add(btn_end_lunch)
+
+            bot.send_message(message.from_user.id, "Ти вже на обіді.", reply_markup=markup)
+            return
+
+        LunchBreak().start_lunch_break(courier['name'], start_datetime.time().replace(microsecond=0))
 
         markup = types.ReplyKeyboardMarkup(resize_keyboard=True)
         btn_end_lunch = types.KeyboardButton('Завершити обід')
