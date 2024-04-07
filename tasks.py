@@ -13,7 +13,9 @@ def task_send_reminder_start():
     couriers = Courier().get_all_couriers()
 
     for courier in couriers:
-        if courier['telegram_id'] != 'телеграм id':
+        row_workday = Workday().get_row_courier_workday(courier["name"])
+
+        if not row_workday:
             try:
                 bot.send_message(courier['telegram_id'], f'Привіт {courier["name"].title()}👋 Якщо ти сьогодні працюєш, не забудь відмітитися коли прийдеш на роботу. Гарного та Продуктивного дня🤙')
             except Exception as e:
