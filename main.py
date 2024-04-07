@@ -161,6 +161,7 @@ def start_bot():
 
 if __name__ == "__main__":
     apihelper.proxy = {'http': proxy_url}
+    apihelper.SESSION_TIME_TO_LIVE = 5 * 60
 
     schedule.every().day.at("09:50", "Europe/Kyiv").do(task_send_reminder_start)
     schedule.every().day.at("23:50", "Europe/Kyiv").do(task_filling_blanks)
