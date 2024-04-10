@@ -36,6 +36,7 @@ def start(message):
 
 @bot.message_handler(content_types=['text'])
 def get_text_messages(message):
+    sleep(2)
     if message.text == "Піти на обід🍔":
         courier = Courier(message.from_user.id).get_courier()
         start_datetime = datetime.datetime.now(tz)
