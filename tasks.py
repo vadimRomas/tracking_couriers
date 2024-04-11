@@ -23,12 +23,12 @@ def task_send_reminder_start():
                 print(e)
 
 
-def task_send_reminder_end_lunch(telegram_id):
+def task_send_reminder_end_lunch(telegram_id, time):
     courier = Courier(user_id=telegram_id).get_courier()
     date = datetime.datetime.now(tz).date()
-    row_lunch_brake = LunchBreak().get_row_courier_lunch_break(courier['name'], date)
+    is_lunch_brake = LunchBreak().is_courier_finished_lunch(courier['name'], date, time)
 
-    if row_lunch_brake:
+    if is_lunch_brake:
         try:
             bot.send_message(telegram_id, 'Ти вже годину на обіді. Не забудь натиснути кнопку "Завершити обід"')  #  f'Лягай спати, відпочивай! Я знаю ти втомлюєшся капец.Так що лягай спати це я тобі сказав Полтавський палій! Ти зрозумів мене Дракон?'
         except Exception as e:

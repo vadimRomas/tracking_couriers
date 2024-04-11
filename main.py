@@ -56,7 +56,7 @@ def get_text_messages(message):
         btn_end_lunch = types.KeyboardButton('Завершити обід')
         markup.add(btn_end_lunch)
 
-        schedule.every(1).hour.do(task_send_reminder_end_lunch, message.from_user.id)
+        schedule.every(1).hour.do(task_send_reminder_end_lunch, message.from_user.id, start_datetime.time().replace(microsecond=0))
 
         try:
             bot.send_message(message.from_user.id, "Смачного!", reply_markup=markup)

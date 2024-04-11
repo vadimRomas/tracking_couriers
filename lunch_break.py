@@ -47,3 +47,13 @@ class LunchBreak:
         for idl, lunch_brake in enumerate(all_lunch_brake):
             if courier_name == lunch_brake[1] and str(date) == lunch_brake[0] and len(lunch_brake) == 3:
                 return idl + 1
+
+    def is_courier_finished_lunch(self, courier_name, date, time):
+        all_lunch_brake = self.worksheet.get_all_values(include_tailing_empty=False, include_tailing_empty_rows=False)
+
+        for lunch_brake in all_lunch_brake:
+            print(str(time), lunch_brake[2])
+            if courier_name == lunch_brake[1] and str(date) == lunch_brake[0] and len(lunch_brake) == 3 and str(time) == lunch_brake[2]:
+                return True
+
+        return False
