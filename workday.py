@@ -7,10 +7,10 @@ from lunch_break import LunchBreak
 
 
 class Workday:
-    sheet_name = 'CouriersTracking'
+    sheet_name = 'testcourier'
     client = pygsheets.authorize()
     sheet = client.open(sheet_name)
-    worksheet = sheet.worksheet_by_title('Workday')
+    worksheet = sheet.worksheet_by_title('testWorkday')
 
     def __init__(self):
         self.date = datetime.datetime.now(tz).date()

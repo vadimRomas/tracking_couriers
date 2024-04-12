@@ -6,10 +6,10 @@ from config import tz
 
 
 class LunchBreak:
-    sheet_name = 'CouriersTracking'
+    sheet_name = 'testcourier'
     client = pygsheets.authorize()
     sheet = client.open(sheet_name)
-    worksheet = sheet.worksheet_by_title('lunchBreak')
+    worksheet = sheet.worksheet_by_title('testlunchBreak')
 
     def __init__(self):
         self.date = datetime.datetime.now(tz).date()
