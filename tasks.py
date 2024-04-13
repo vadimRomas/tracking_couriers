@@ -17,7 +17,10 @@ def task_send_reminder_start():
 
         if not row_workday:
             try:
-                bot.send_message(courier['telegram_id'], f'Привіт {courier["name"].title()}👋 Якщо ти сьогодні працюєш, не забудь відмітитися коли прийдеш на роботу. Гарного та Продуктивного дня🤙')
+                markup = types.ReplyKeyboardMarkup(resize_keyboard=True)
+                button_geo = types.KeyboardButton(text='Я вже нa poботі💼', request_location=True)
+                markup.add(button_geo)
+                bot.send_message(courier['telegram_id'], f'Привіт {courier["name"].title()}👋 Якщо ти сьогодні працюєш, не забудь відмітитися коли прийдеш на роботу. Гарного та Продуктивного дня🤙', reply_markup=markup)
             except Exception as e:
                 print(courier)
                 print(e)
