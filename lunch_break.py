@@ -52,7 +52,6 @@ class LunchBreak:
         all_lunch_brake = self.worksheet.get_all_values(include_tailing_empty=False, include_tailing_empty_rows=False)
 
         for lunch_brake in all_lunch_brake:
-            print(str(time), lunch_brake[2])
             if courier_name == lunch_brake[1] and str(date) == lunch_brake[0] and len(lunch_brake) == 3 and str(time) == lunch_brake[2]:
                 return True
 
