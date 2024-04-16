@@ -15,6 +15,10 @@ def get_country(lat, lon):
         if 'house_number' in result_json['address']:
             result_str += f", {result_json['address']['house_number']}"
 
+        if not result_str:
+            print(result_json)
+            result_str = result_json["display_name"]
+
         return result_str
     except:
         return None
