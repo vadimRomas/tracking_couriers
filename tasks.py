@@ -17,10 +17,7 @@ def task_send_reminder_start():
 
         if not row_workday:
             try:
-                markup = types.ReplyKeyboardMarkup(resize_keyboard=True)
-                button_geo = types.KeyboardButton(text='Я вже нa poботі💼', request_location=True)
-                markup.add(button_geo)
-                bot.send_message(courier['telegram_id'], f'Привіт {courier["name"].title()}👋 Якщо ти сьогодні працюєш, не забудь відмітитися коли прийдеш на роботу. Гарного та Продуктивного дня🤙', reply_markup=markup)
+                bot.send_message(courier['telegram_id'], f'Привіт {courier["name"].title()}👋 Якщо ти сьогодні працюєш, не забудь відмітитися коли прийдеш на роботу. Гарного та Продуктивного дня🤙')
             except Exception as e:
                 print(courier)
                 print(e)
@@ -42,8 +39,8 @@ def task_send_reminder_end_lunch(telegram_id, time):
 
 
 def task_filling_blanks():
-    all_workdays = Workday().worksheet.get_all_values(include_tailing_empty=False, include_tailing_empty_rows=False)
-    all_lunch_brake = LunchBreak().worksheet.get_all_values(include_tailing_empty=False, include_tailing_empty_rows=False)
+    all_workdays = Workday().workdays
+    all_lunch_brake = LunchBreak().lunch_brake
     name_couriers = []
 
     for lunch_brake in all_lunch_brake:

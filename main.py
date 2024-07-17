@@ -56,7 +56,8 @@ def get_text_messages(message):
         btn_end_lunch = types.KeyboardButton('Завершити обід')
         markup.add(btn_end_lunch)
 
-        schedule.every(1).hour.do(task_send_reminder_end_lunch, message.from_user.id, start_datetime.time().replace(microsecond=0))
+        schedule.every(1).hour.do(task_send_reminder_end_lunch, message.from_user.id,
+                                  start_datetime.time().replace(microsecond=0))
 
         try:
             bot.send_message(message.from_user.id, "Смачного!", reply_markup=markup)
@@ -101,7 +102,7 @@ def process_create_courier_step(message):
 def location(message):
     if message.location is not None:
         courier = Courier(message.from_user.id).get_courier()
-        message_time = datetime.datetime.now(tz).time().replace(microsecond=0)
+        message_time = datetime.datetime.now(tz)
         address = get_country(message.location.latitude, message.location.longitude)
 
         row_courier_work = Workday().get_row_courier_workday(courier['name'])
@@ -109,14 +110,20 @@ def location(message):
 
         if len(courier_work) == 8:
             try:
-                bot.send_message(message.chat.id, "Ви вже завершили сьогодні працювати! Якщо ви випадково завершили роботу, будь ласка, повідомте вашого керівника")
+                bot.send_message(message.chat.id,
+                                 "Ви вже завершили сьогодні працювати! Якщо ви випадково завершили роботу, будь ласка, повідомте вашого керівника")
             except Exception as e:
                 print('message.chat.id: ', message.chat.id)
                 print(e)
             return
 
         if not row_courier_work:
-            Workday().start_workday(courier['name'], message_time, address)
+            try:
+                Workday().start_workday(courier['name'], message_time, address)
+            except:
+                bot.send_message(547235725, f"!!ХЕЛП!! {courier['name']} не може почати працювати")
+                bot.send_message(message.chat.id, "Не вдалося! спробуйте ще раз через хвилину")
+                return
 
             markup = types.ReplyKeyboardMarkup(resize_keyboard=True)
             btn_lunch_brake = types.KeyboardButton(text='Піти на обід🍔')
@@ -130,7 +137,12 @@ def location(message):
                 print(courier)
                 print(e)
         else:
-            Workday().end_workday(courier['name'], message_time, address, row=row_courier_work)
+            try:
+                Workday().end_workday(courier['name'], message_time, address, row=row_courier_work)
+            except:
+                bot.send_message(547235725, f"!!ХЕЛП!! {courier['name']} не може завершити працювати")
+                bot.send_message(message.chat.id, "Не вдалося! спробуйте ще раз через хвилину")
+                return
 
             markup = types.ReplyKeyboardMarkup(resize_keyboard=True)
             btn_start_work = types.KeyboardButton(text='Я вже нa poботі💼', request_location=True)

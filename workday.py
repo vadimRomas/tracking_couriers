@@ -1,57 +1,86 @@
 import datetime
 
-import pygsheets
-
 from config import tz
 from lunch_break import LunchBreak
+from google_connect import get_service_sacc, create_worksheet
 
 
 class Workday:
-    sheet_name = 'CouriersTracking'
-    client = pygsheets.authorize()
-    sheet = client.open(sheet_name)
-    worksheet = sheet.worksheet_by_title('Workday')
 
     def __init__(self):
         self.date = datetime.datetime.now(tz).date()
+        self.worksheet_name = f'testWorkday{str(self.date.month)}'
+        try:
+            self.workdays = get_service_sacc().spreadsheets().values().batchGet(
+                spreadsheetId='1yiHgHortpplm1kD6yIkyCh1-bt1iwsOg_qMqGBc4rGA', ranges=["A1:H999", self.worksheet_name]).execute()['valueRanges'][1]['values']
+        except:
+            create_worksheet(self.worksheet_name)
+            body = {
+                'values': [
+                    ["Дата", "Ім'я курєра", "Початок робочого дня", "Початкова адреса", "Кінець робочого дня", "Кінцева адреса", "Робочий час", "Перерва"]
+                ]
+            }
+
+            get_service_sacc().spreadsheets().values().append(
+                spreadsheetId='1yiHgHortpplm1kD6yIkyCh1-bt1iwsOg_qMqGBc4rGA',
+                range=f"{self.worksheet_name}!A1",
+                valueInputOption="RAW",
+                body=body).execute()
+
+            self.workdays = get_service_sacc().spreadsheets().values().batchGet(
+                spreadsheetId='1yiHgHortpplm1kD6yIkyCh1-bt1iwsOg_qMqGBc4rGA',
+                ranges=["A1:H999", self.worksheet_name]).execute()['valueRanges'][1]['values']
 
     def start_workday(self, courier_name, time, location):
-        self.worksheet.append_table([str(self.date), courier_name, str(time), location])
+        body = {
+            'values': [
+                [str(self.date), courier_name, str(time.time().replace(microsecond=0)), location],
+            ]
+        }
+
+        get_service_sacc().spreadsheets().values().append(
+            spreadsheetId='1yiHgHortpplm1kD6yIkyCh1-bt1iwsOg_qMqGBc4rGA',
+            range=f"{self.worksheet_name}!A{len(self.workdays)+1}",
+            valueInputOption="RAW",
+            body=body).execute()
 
     def end_workday(self, courier_name, time, location, row):
         workday_time = self.count_workday_time(row, time)
         lunch_break_time = LunchBreak().count_lunch_break(courier_name)
 
-        self.worksheet.update_value(f'E{row}', str(time))
-        self.worksheet.update_value(f'F{row}', location)
-        self.worksheet.update_value(f'G{row}', workday_time)
-        self.worksheet.update_value(f'H{row}', lunch_break_time)
+        body = {
+            'values': [
+                [str(time.time().replace(microsecond=0)), location, workday_time, lunch_break_time],
+            ]
+        }
+
+        get_service_sacc().spreadsheets().values().update(
+            spreadsheetId='1yiHgHortpplm1kD6yIkyCh1-bt1iwsOg_qMqGBc4rGA',
+            range=f"{self.worksheet_name}!E{row}",
+            valueInputOption="RAW",
+            body=body).execute()
 
     def count_workday_time(self, row, time):
-        all_workdays = self.worksheet.get_all_values(include_tailing_empty=False, include_tailing_empty_rows=False)
-        workday = all_workdays[row - 1]
-        hours = int(time.hour) - int(datetime.datetime.strptime(workday[2], '%H:%M:%S').hour)
-        minutes = int(time.minute) - int(datetime.datetime.strptime(workday[2], '%H:%M:%S').minute)
-        seconds = int(time.second) - int(datetime.datetime.strptime(workday[2], '%H:%M:%S').second)
-        return f'{hours}:{minutes}:{seconds}'
+        workday = self.workdays[row - 1]
+
+        hour = datetime.datetime.strptime(workday[2], '%H:%M:%S').hour
+        minute = datetime.datetime.strptime(workday[2], '%H:%M:%S').minute
+        second = datetime.datetime.strptime(workday[2], '%H:%M:%S').second
+
+        result = time - datetime.timedelta(hours=hour, minutes=minute, seconds=second)
+        return f'{result.hour}:{result.minute}:{result.second}'
 
     def get_row_courier_workday(self, courier_name):
-        all_couriers = self.worksheet.get_all_values(include_tailing_empty=False, include_tailing_empty_rows=False)
-
-        for idc, courier in enumerate(all_couriers):
+        for idc, courier in enumerate(self.workdays):
             if courier_name == courier[1] and str(self.date) == courier[0]:
                 return idc + 1
 
     def get_courier_workday(self, courier_name):
-        all_workdays = self.worksheet.get_all_values(include_tailing_empty=False, include_tailing_empty_rows=False)
-
-        for workday in all_workdays:
+        for workday in self.workdays:
             if courier_name == workday[1] and str(self.date) == workday[0]:
                 return workday
 
         return []
 
     def get_couriers_workday(self):
-        all_workdays = self.worksheet.get_all_values(include_tailing_empty=False, include_tailing_empty_rows=False)
-
-        return [workday for workday in all_workdays if str(self.date) == workday[0]]
+        return [workday for workday in self.workdays if str(self.date) == workday[0]]
