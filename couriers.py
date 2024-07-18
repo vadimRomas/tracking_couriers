@@ -7,7 +7,7 @@ class Courier:
     def __init__(self, user_id=None, name=None):
         self.user_id = user_id
         self.name = name
-        self.worksheet_name = 'testCouriers'
+        self.worksheet_name = 'Couriers'
         self.couriers = get_service_sacc().spreadsheets().values().batchGet(
             spreadsheetId=spreadsheet_id, ranges=["A1:B999", self.worksheet_name]).execute()[
             'valueRanges'][0]['values']

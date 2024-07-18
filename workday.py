@@ -1,6 +1,6 @@
 import datetime
 
-from config import tz
+from config import tz, spreadsheet_id
 from lunch_break import LunchBreak
 from google_connect import get_service_sacc, create_worksheet
 
@@ -9,10 +9,10 @@ class Workday:
 
     def __init__(self):
         self.date = datetime.datetime.now(tz).date()
-        self.worksheet_name = f'testWorkday{str(self.date.month)}'
+        self.worksheet_name = f'Workday{str(self.date.month)}'
         try:
             self.workdays = get_service_sacc().spreadsheets().values().batchGet(
-                spreadsheetId='1yiHgHortpplm1kD6yIkyCh1-bt1iwsOg_qMqGBc4rGA', ranges=["A1:H999", self.worksheet_name]).execute()['valueRanges'][1]['values']
+                spreadsheetId=spreadsheet_id, ranges=["A1:H999", self.worksheet_name]).execute()['valueRanges'][1]['values']
         except:
             create_worksheet(self.worksheet_name)
             body = {
@@ -22,13 +22,13 @@ class Workday:
             }
 
             get_service_sacc().spreadsheets().values().append(
-                spreadsheetId='1yiHgHortpplm1kD6yIkyCh1-bt1iwsOg_qMqGBc4rGA',
+                spreadsheetId=spreadsheet_id,
                 range=f"{self.worksheet_name}!A1",
                 valueInputOption="RAW",
                 body=body).execute()
 
             self.workdays = get_service_sacc().spreadsheets().values().batchGet(
-                spreadsheetId='1yiHgHortpplm1kD6yIkyCh1-bt1iwsOg_qMqGBc4rGA',
+                spreadsheetId=spreadsheet_id,
                 ranges=["A1:H999", self.worksheet_name]).execute()['valueRanges'][1]['values']
 
     def start_workday(self, courier_name, time, location):
@@ -39,7 +39,7 @@ class Workday:
         }
 
         get_service_sacc().spreadsheets().values().append(
-            spreadsheetId='1yiHgHortpplm1kD6yIkyCh1-bt1iwsOg_qMqGBc4rGA',
+            spreadsheetId=spreadsheet_id,
             range=f"{self.worksheet_name}!A{len(self.workdays)+1}",
             valueInputOption="RAW",
             body=body).execute()
@@ -55,7 +55,7 @@ class Workday:
         }
 
         get_service_sacc().spreadsheets().values().update(
-            spreadsheetId='1yiHgHortpplm1kD6yIkyCh1-bt1iwsOg_qMqGBc4rGA',
+            spreadsheetId=spreadsheet_id,
             range=f"{self.worksheet_name}!E{row}",
             valueInputOption="RAW",
             body=body).execute()

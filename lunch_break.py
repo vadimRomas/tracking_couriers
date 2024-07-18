@@ -9,7 +9,7 @@ class LunchBreak:
     def __init__(self):
         self.date = datetime.datetime.now(tz).date()
 
-        self.worksheet_name = f'testlunchBreak{str(self.date.month)}'
+        self.worksheet_name = f'lunchBreak{str(self.date.month)}'
         try:
             self.lunch_brake = get_service_sacc().spreadsheets().values().batchGet(
                 spreadsheetId=spreadsheet_id,
