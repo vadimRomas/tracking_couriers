@@ -49,7 +49,7 @@ def task_filling_blanks():
 
     for idw, workday in enumerate(all_workdays):
         if len(workday) == 4:
-            Workday().end_workday(workday[1], datetime.datetime.now(tz).time().replace(microsecond=0), 'Відсутнє', idw + 1)
+            Workday().end_workday(workday[1], datetime.datetime.now(tz), 'Відсутнє', idw + 1)
             if workday[1] not in name_couriers:
                 name_couriers.append(workday[1])
 
